@@ -3,96 +3,805 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M&M 2e Interactive Character Sheet</title>
+    <title>Mutants & Masterminds Character Manager</title>
     <style>
+        :root {
+            --primary-blue: #0a4b8c;
+            --secondary-blue: #1e73be;
+            --light-blue: #82b1e7;
+            --primary-yellow: #ffc107;
+            --secondary-yellow: #ffdb58;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f4;
         }
-        .sheet {
-            max-width: 900px;
-            margin: auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+
+        header {
+            background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+            color: var(--white);
+            padding: 20px 0;
+            border-bottom: 4px solid var(--primary-yellow);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        input, select, textarea {
-            width: 100%;
-            padding: 5px;
-            margin: 5px 0;
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .section {
-            margin-bottom: 20px;
+
+        .logo {
+            display: flex;
+            align-items: center;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+
+        .logo h1 {
+            font-size: 24px;
+            margin-left: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-icon {
+            font-size: 36px;
+            color: var(--primary-yellow);
+        }
+
+        .header-buttons {
+            display: flex;
             gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-yellow);
+            color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-yellow);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: var(--light-blue);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--primary-blue);
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-right: 1px solid var(--primary-blue);
+        }
+
+        .tab.active {
+            background-color: var(--white);
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: var(--light-blue);
+        }
+
+        .tab-content {
+            display: none;
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .new-tab-btn {
+            background-color: var(--primary-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .new-tab-btn:hover {
+            background-color: var(--secondary-yellow);
+        }
+
+        .character-sheet {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .character-section {
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .character-section h3 {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--primary-yellow);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .full-width {
+            grid-column: span 3;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .form-group input, 
+        .form-group textarea, 
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border 0.3s ease;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus, 
+        .form-group select:focus {
+            border-color: var(--primary-yellow);
+            outline: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-label {
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            width: 50px;
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .skill-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .power-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .power-item {
+            background-color: var(--white);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 3px solid var(--primary-yellow);
+        }
+
+        .power-item h4 {
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--dark-gray);
+            font-size: 14px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-yellow);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-blue);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary-blue);
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* File list styles */
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .file-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background-color: var(--light-blue);
+            color: var(--white);
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
-    <div class="sheet">
-        <h2>Mutants & Masterminds 2e Character Sheet</h2>
-        <div class="section">
-            <label>Character Name:</label>
-            <input type="text" id="characterName">
-        </div>
-        <div class="grid">
-            <div>
-                <label>Alternate Identity:</label>
-                <input type="text" id="altIdentity">
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <h1>M&M Character Manager</h1>
             </div>
-            <div>
-                <label>Power Level:</label>
-                <input type="number" id="powerLevel">
+            <div class="header-buttons">
+                <button id="newCharBtn" class="btn btn-primary">New Character</button>
+                <button id="saveBtn" class="btn btn-primary">Save</button>
+                <button id="loadBtn" class="btn btn-secondary">Load</button>
             </div>
         </div>
-        <div class="section">
-            <h3>Abilities</h3>
-            <div class="grid">
-                <div><label>Strength</label><input type="number" id="strength"></div>
-                <div><label>Dexterity</label><input type="number" id="dexterity"></div>
-                <div><label>Constitution</label><input type="number" id="constitution"></div>
-                <div><label>Intelligence</label><input type="number" id="intelligence"></div>
-                <div><label>Wisdom</label><input type="number" id="wisdom"></div>
-                <div><label>Charisma</label><input type="number" id="charisma"></div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="char1">
+                Character 1
+                <span class="close-tab">×</span>
+            </button>
+            <button class="new-tab-btn">+</button>
+        </div>
+
+        <div id="char1" class="tab-content active">
+            <div class="character-sheet">
+                <!-- Character Overview Section -->
+                <div class="character-section full-width">
+                    <h3>Character Overview</h3>
+                    <div class="form-group">
+                        <label for="charName">Character Name</label>
+                        <input type="text" id="charName" name="charName" placeholder="Enter character name">
+                    </div>
+                    <div class="form-group">
+                        <label for="playerName">Player Name</label>
+                        <input type="text" id="playerName" name="playerName" placeholder="Enter player name">
+                    </div>
+                    <div class="form-group">
+                        <label for="powerLevel">Power Level</label>
+                        <input type="number" id="powerLevel" name="powerLevel" min="1" max="20" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="characterConcept">Character Concept</label>
+                        <textarea id="characterConcept" name="characterConcept" rows="2" placeholder="Enter character concept"></textarea>
+                    </div>
+                </div>
+
+                <!-- Abilities Section -->
+                <div class="character-section">
+                    <h3>Abilities</h3>
+                    <div class="stat-grid">
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Strength</span>
+                            <input type="number" class="stat-value" name="strength" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Dexterity</span>
+                            <input type="number" class="stat-value" name="dexterity" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Constitution</span>
+                            <input type="number" class="stat-value" name="constitution" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Intelligence</span>
+                            <input type="number" class="stat-value" name="intelligence" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Wisdom</span>
+                            <input type="number" class="stat-value" name="wisdom" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Charisma</span>
+                            <input type="number" class="stat-value" name="charisma" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combat Stats Section -->
+                <div class="character-section">
+                    <h3>Combat Stats</h3>
+                    <div class="stat-grid">
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Attack Bonus</span>
+                            <input type="number" class="stat-value" name="attackBonus" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Defense</span>
+                            <input type="number" class="stat-value" name="defense" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Toughness</span>
+                            <input type="number" class="stat-value" name="toughness" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Fortitude</span>
+                            <input type="number" class="stat-value" name="fortitude" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Reflex</span>
+                            <input type="number" class="stat-value" name="reflex" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Will</span>
+                            <input type="number" class="stat-value" name="will" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Initiative</span>
+                            <input type="number" class="stat-value" name="initiative" value="0">
+                        </div>
+                        <div class="form-group stat-row">
+                            <span class="stat-label">Grapple</span>
+                            <input type="number" class="stat-value" name="grapple" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Character Details Section -->
+                <div class="character-section">
+                    <h3>Character Details</h3>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <input type="text" id="gender" name="gender">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="text" id="age" name="age">
+                    </div>
+                    <div class="form-group">
+                        <label for="height">Height</label>
+                        <input type="text" id="height" name="height">
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight</label>
+                        <input type="text" id="weight" name="weight">
+                    </div>
+                    <div class="form-group">
+                        <label for="eyes">Eyes</label>
+                        <input type="text" id="eyes" name="eyes">
+                    </div>
+                    <div class="form-group">
+                        <label for="hair">Hair</label>
+                        <input type="text" id="hair" name="hair">
+                    </div>
+                </div>
+
+                <!-- Skills Section -->
+                <div class="character-section">
+                    <h3>Skills</h3>
+                    <div class="skill-list">
+                        <div class="skill-row">
+                            <span>Acrobatics</span>
+                            <input type="number" class="stat-value" name="acrobatics" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Bluff</span>
+                            <input type="number" class="stat-value" name="bluff" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Climb</span>
+                            <input type="number" class="stat-value" name="climb" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Computers</span>
+                            <input type="number" class="stat-value" name="computers" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Concentration</span>
+                            <input type="number" class="stat-value" name="concentration" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Craft</span>
+                            <input type="number" class="stat-value" name="craft" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Diplomacy</span>
+                            <input type="number" class="stat-value" name="diplomacy" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Disable Device</span>
+                            <input type="number" class="stat-value" name="disableDevice" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Disguise</span>
+                            <input type="number" class="stat-value" name="disguise" value="0">
+                        </div>
+                        <div class="skill-row">
+                            <span>Escape Artist</span>
+                            <input type="number" class="stat-value" name="escapeArtist" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feats Section -->
+                <div class="character-section">
+                    <h3>Feats</h3>
+                    <div class="form-group">
+                        <label for="feats">Character Feats</label>
+                        <textarea id="feats" name="feats" rows="10" placeholder="Enter character feats"></textarea>
+                    </div>
+                </div>
+
+                <!-- Powers Section -->
+                <div class="character-section full-width">
+                    <h3>Powers</h3>
+                    <ul class="power-list">
+                        <li class="power-item">
+                            <h4>Power Name</h4>
+                            <div class="form-group">
+                                <label for="power1name">Name</label>
+                                <input type="text" id="power1name" name="power1name" placeholder="Enter power name">
+                            </div>
+                            <div class="form-group">
+                                <label for="power1rank">Rank</label>
+                                <input type="number" id="power1rank" name="power1rank" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="power1description">Description</label>
+                                <textarea id="power1description" name="power1description" rows="3" placeholder="Enter power description"></textarea>
+                            </div>
+                        </li>
+                        <button class="btn btn-secondary">Add Power</button>
+                    </ul>
+                </div>
+
+                <!-- Complications Section -->
+                <div class="character-section full-width">
+                    <h3>Complications</h3>
+                    <div class="form-group">
+                        <label for="complications">Character Complications</label>
+                        <textarea id="complications" name="complications" rows="4" placeholder="Enter character complications"></textarea>
+                    </div>
+                </div>
+
+                <!-- Background Section -->
+                <div class="character-section full-width">
+                    <h3>Background</h3>
+                    <div class="form-group">
+                        <label for="background">Character Background</label>
+                        <textarea id="background" name="background" rows="6" placeholder="Enter character background"></textarea>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="section">
-            <h3>Powers/Devices</h3>
-            <textarea id="powers" rows="5"></textarea>
-        </div>
-        <div class="section">
-            <h3>Feats</h3>
-            <textarea id="feats" rows="3"></textarea>
-        </div>
-        <button onclick="saveCharacter()">Save Character</button>
     </div>
 
+    <!-- Save Modal -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Save Character</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="saveFileName">File Name</label>
+                <input type="text" id="saveFileName" name="saveFileName" placeholder="Enter file name">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="confirmSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Modal -->
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Load Character</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="file-list">
+                <div class="file-item">Captain Lightning.mm2</div>
+                <div class="file-item">Night Phantom.mm2</div>
+                <div class="file-item">Dr. Quantum.mm2</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="confirmLoad">Load</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer container">
+        <p>&copy; 2025 Mutants & Masterminds Character Manager | Unofficial Fan Tool</p>
+    </footer>
+
     <script>
-        function saveCharacter() {
-            const character = {
-                name: document.getElementById('characterName').value,
-                altIdentity: document.getElementById('altIdentity').value,
-                powerLevel: document.getElementById('powerLevel').value,
-                abilities: {
-                    strength: document.getElementById('strength').value,
-                    dexterity: document.getElementById('dexterity').value,
-                    constitution: document.getElementById('constitution').value,
-                    intelligence: document.getElementById('intelligence').value,
-                    wisdom: document.getElementById('wisdom').value,
-                    charisma: document.getElementById('charisma').value
-                },
-                powers: document.getElementById('powers').value,
-                feats: document.getElementById('feats').value
-            };
-            localStorage.setItem('mnmCharacter', JSON.stringify(character));
-            alert('Character saved!');
+        // DOM Elements
+        const newCharBtn = document.getElementById('newCharBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const saveModal = document.getElementById('saveModal');
+        const loadModal = document.getElementById('loadModal');
+        const closeBtns = document.querySelectorAll('.close-btn, .close-modal');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const newTabBtn = document.querySelector('.new-tab-btn');
+
+        // Tab Counter
+        let tabCounter = 1;
+
+        // Event Listeners
+        newCharBtn.addEventListener('click', () => {
+            createNewTab();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            saveModal.classList.add('active');
+        });
+
+        loadBtn.addEventListener('click', () => {
+            loadModal.classList.add('active');
+        });
+
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                saveModal.classList.remove('active');
+                loadModal.classList.remove('active');
+            });
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                if (e.target.classList.contains('close-tab')) {
+                    // Close tab functionality
+                    const tabId = tab.getAttribute('data-tab');
+                    const tabContent = document.getElementById(tabId);
+                    
+                    if (tab.classList.contains('active') && document.querySelectorAll('.tab').length > 1) {
+                        document.querySelector('.tab:not([data-tab="' + tabId + '"])').classList.add('active');
+                        document.querySelector('.tab-content:not(#' + tabId + ')').classList.add('active');
+                    }
+                    
+                    tab.remove();
+                    tabContent.remove();
+                } else {
+                    // Switch tab functionality
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Deactivate all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Activate selected tab and content
+                    tab.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                }
+            });
+        });
+
+        newTabBtn.addEventListener('click', createNewTab);
+
+        // Functions
+        function createNewTab() {
+            tabCounter++;
+            
+            // Create new tab button
+            const newTab = document.createElement('button');
+            newTab.className = 'tab';
+            newTab.setAttribute('data-tab', 'char' + tabCounter);
+            newTab.innerHTML = 'Character ' + tabCounter + ' <span class="close-tab">×</span>';
+            
+            // Create new tab content
+            const newContent = document.createElement('div');
+            newContent.id = 'char' + tabCounter;
+            newContent.className = 'tab-content';
+            
+            // Clone the content of the first tab
+            const firstContent = document.getElementById('char1');
+            newContent.innerHTML = firstContent.innerHTML;
+            
+            // Clear form values in the new tab
+            newContent.querySelectorAll('input').forEach(input => {
+                if (input.type === 'number') {
+                    input.value = '0';
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            newContent.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = '';
+            });
+            
+            // Insert the new tab and content
+            newTabBtn.parentNode.insertBefore(newTab, newTabBtn);
+            document.querySelector('.container').appendChild(newContent);
+            
+            // Activate the new tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            newTab.classList.add('active');
+            newContent.classList.add('active');
+            
+            // Add event listener to the new tab
+            newTab.addEventListener('click', (e) => {
+                if (e.target.classList.contains('close-tab')) {
+                    // Close tab functionality
+                    const tabId = newTab.getAttribute('data-tab');
+                    const tabContent = document.getElementById(tabId);
+                    
+                    if (newTab.classList.contains('active') && document.querySelectorAll('.tab').length > 1) {
+                        document.querySelector('.tab:not([data-tab="' + tabId + '"])').classList.add('active');
+                        document.querySelector('.tab-content:not(#' + tabId + ')').classList.add('active');
+                    }
+                    
+                    newTab.remove();
+                    tabContent.remove();
+                } else {
+                    // Switch tab functionality
+                    const tabId = newTab.getAttribute('data-tab');
+                    
+                    // Deactivate all tabs and contents
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Activate selected tab and content
+                    newTab.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                }
+            });
         }
+
+        // Save and Load functionality (placeholder for actual implementation)
+        document.getElementById('confirmSave').addEventListener('click', () => {
+            const fileName = document.getElementById('saveFileName').value;
+            if (fileName) {
+                alert('Character saved as: ' + fileName + '.mm2');
+                saveModal.classList.remove('active');
+            } else {
+                alert('Please enter a file name');
+            }
+        });
+
+        document.getElementById('confirmLoad').addEventListener('click', () => {
+            const selectedFile = document.querySelector('.file-item.selected');
+            if (selectedFile) {
+                alert('Loading character: ' + selectedFile.textContent);
+                loadModal.classList.remove('active');
+            } else {
+                alert('Please select a character file to load');
+            }
+        });
+
+        // File selection in load modal
+        document.querySelectorAll('.file-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.file-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
     </script>
 </body>
 </html>
